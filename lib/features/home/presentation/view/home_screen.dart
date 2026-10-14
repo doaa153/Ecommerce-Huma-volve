@@ -1,13 +1,14 @@
-import 'package:ecommerce_app_huma_volve/features/home/cubit/home_cubit.dart';
-import 'package:ecommerce_app_huma_volve/features/home/cubit/home_states.dart';
+import 'package:ecommerce_app_huma_volve/features/home/presentation/view_model/home_cubit.dart';
+import 'package:ecommerce_app_huma_volve/features/home/presentation/view_model/home_states.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import '../../../core/dummy_data.dart';
-import '../../../core/theme.dart';
+import '../../../../core/dummy_data.dart';
+import '../../../../core/theme.dart';
 import 'widgets/product_card.dart';
 import 'widgets/category_chip.dart';
-import 'package:ecommerce_app_huma_volve/features/home/services/models/category_model.dart';
+
+import 'package:ecommerce_app_huma_volve/features/home/data/models/category_model.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -18,8 +19,7 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   int _selectedCategoryIndex = 0;
-  List<CategoryModel> categories = [];
-
+  List<HomeCategoryModel> categories = [];
 
   @override
   void initState() {
@@ -151,7 +151,11 @@ class _HomeScreenState extends State<HomeScreen> {
                                     setState(() {
                                       _selectedCategoryIndex = index;
                                     });
-                                    context.read<HomeCubit>().loadProductsByCategory(categories[index].id!,);
+                                    context
+                                        .read<HomeCubit>()
+                                        .loadProductsByCategory(
+                                          categories[index].id!,
+                                        );
                                   },
                                 );
                               },
@@ -168,75 +172,65 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
             SliverPadding(
               padding: const EdgeInsets.symmetric(horizontal: 24),
-              
-              sliver:
-BlocBuilder<HomeCubit, HomeStates>(
-  buildWhen: (previous, current) {
-    return current is ProductsLoading ||
-        current is ProductsSuccess ||
-        current is ProductsError;
-  },
-  builder: (context, state) {
-    if (state is ProductsLoading) {
-      return const SliverToBoxAdapter(
-        child: Center(
-          child: Padding(
-            padding: EdgeInsets.all(24),
-            child: CircularProgressIndicator(),
-          ),
-        ),
-      );
-    }
 
-    if (state is ProductsError) {
-      return SliverToBoxAdapter(
-        child: Center(
-          child: Text(state.errorMessage),
-        ),
-      );
-    }
+              sliver: BlocBuilder<HomeCubit, HomeStates>(
+                buildWhen: (previous, current) {
+                  return current is ProductsLoading ||
+                      current is ProductsSuccess ||
+                      current is ProductsError;
+                },
+                builder: (context, state) {
+                  if (state is ProductsLoading) {
+                    return const SliverToBoxAdapter(
+                      child: Center(
+                        child: Padding(
+                          padding: EdgeInsets.all(24),
+                          child: CircularProgressIndicator(),
+                        ),
+                      ),
+                    );
+                  }
 
-    if (state is ProductsSuccess) {
-      final products = state.products;
+                  if (state is ProductsError) {
+                    return SliverToBoxAdapter(
+                      child: Center(child: Text(state.errorMessage)),
+                    );
+                  }
 
-      if (products.isEmpty) {
-        return const SliverToBoxAdapter(
-          child: Center(
-            child: Padding(
-              padding: EdgeInsets.all(24),
-              child: Text('No products found'),
-            ),
-          ),
-        );
-      }
+                  if (state is ProductsSuccess) {
+                    final products = state.products;
 
-      return SliverPadding(
-        padding: const EdgeInsets.symmetric(horizontal: 24),
-        sliver: SliverGrid(
-          gridDelegate:
-              const SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: 2,
-            childAspectRatio: 0.58,
-            crossAxisSpacing: 16,
-            mainAxisSpacing: 16,
-          ),
-          delegate: SliverChildBuilderDelegate(
-            (context, index) {
-              return ProductCard(
-                product: products[index],
-              );
-            },
-            childCount: products.length,
-          ),
-        ),
-      );
-    }
+                    if (products.isEmpty) {
+                      return const SliverToBoxAdapter(
+                        child: Center(
+                          child: Padding(
+                            padding: EdgeInsets.all(24),
+                            child: Text('No products found'),
+                          ),
+                        ),
+                      );
+                    }
 
-    return const SliverToBoxAdapter(
-      child: SizedBox.shrink(),
-    );
-  },
-),
+                    return SliverPadding(
+                      padding: const EdgeInsets.symmetric(horizontal: 24),
+                      sliver: SliverGrid(
+                        gridDelegate:
+                            const SliverGridDelegateWithFixedCrossAxisCount(
+                              crossAxisCount: 2,
+                              childAspectRatio: 0.58,
+                              crossAxisSpacing: 16,
+                              mainAxisSpacing: 16,
+                            ),
+                        delegate: SliverChildBuilderDelegate((context, index) {
+                          return ProductCard(product: products[index]);
+                        }, childCount: products.length),
+                      ),
+                    );
+                  }
+
+                  return const SliverToBoxAdapter(child: SizedBox.shrink());
+                },
+              ),
 
               // SliverGrid(
               //   gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
