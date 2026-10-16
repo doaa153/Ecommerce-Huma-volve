@@ -2,7 +2,7 @@
 import 'package:ecommerce_app_huma_volve/features/home/domain/entites/home_product_entity.dart';
 import 'package:flutter/material.dart';
 import '../../../../../core/theme.dart';
-import '../../../../details/screens/product_details_screen.dart';
+import '../../../../details/presentation/view/product_details_screen.dart';
 
 class ProductCard extends StatelessWidget {
   final HomeProductEntity product;
@@ -26,7 +26,7 @@ class ProductCard extends StatelessWidget {
             transitionDuration: const Duration(milliseconds: 500),
             pageBuilder: (context, animation, secondaryAnimation) =>
                 ProductDetailsScreen(
-                  product: product,
+                  productId: product.id,
                 ),
             transitionsBuilder:
                 (context, animation, secondaryAnimation, child) {
