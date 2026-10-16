@@ -20,11 +20,24 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   int _selectedCategoryIndex = 0;
   List<HomeCategoryModel> categories = [];
+  late final ScrollController scrollController;
 
   @override
   void initState() {
     context.read<HomeCubit>().loadHomeData();
+    scrollController = ScrollController();
+    scrollController.addListener(_onListen);
     super.initState();
+  }
+
+  void _onListen() {
+    final pixels = scrollController.position.pixels;
+    final max = scrollController.position.maxScrollExtent;
+    final int triggerDistance = 200;
+    print('current pixels:$pixels , max= $max');
+    if (pixels >= max - triggerDistance) {
+      context.read<HomeCubit>().loadMoreProducts();
+    }
   }
 
   @override
@@ -33,6 +46,7 @@ class _HomeScreenState extends State<HomeScreen> {
       backgroundColor: AppTheme.background,
       body: SafeArea(
         child: CustomScrollView(
+          controller: scrollController,
           slivers: [
             SliverToBoxAdapter(
               child: Padding(
@@ -124,7 +138,9 @@ class _HomeScreenState extends State<HomeScreen> {
                       buildWhen: (previous, current) {
                         if (current is ProductsLoading ||
                             current is ProductsSuccess ||
-                            current is ProductsError) {
+                            current is ProductsError ||
+                            current is ProductsLoadingError ||
+                            current is ProductsLoadingMore) {
                           return false;
                         }
                         return true;
@@ -175,9 +191,15 @@ class _HomeScreenState extends State<HomeScreen> {
 
               sliver: BlocBuilder<HomeCubit, HomeStates>(
                 buildWhen: (previous, current) {
-                  return current is ProductsLoading ||
-                      current is ProductsSuccess ||
-                      current is ProductsError;
+                  if (current is ProductsLoadingError ||
+                      current is ProductsLoadingMore) {
+                    return false;
+                  }
+                  return true;
+
+                  // return current is ProductsLoading ||
+                  //     current is ProductsSuccess ||
+                  //     current is ProductsError;
                 },
                 builder: (context, state) {
                   if (state is ProductsLoading) {
@@ -231,18 +253,19 @@ class _HomeScreenState extends State<HomeScreen> {
                   return const SliverToBoxAdapter(child: SizedBox.shrink());
                 },
               ),
-
-              // SliverGrid(
-              //   gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              //     crossAxisCount: 2,
-              //     childAspectRatio: 0.7,
-              //     crossAxisSpacing: 16,
-              //     mainAxisSpacing: 16,
-              //   ),
-              //   delegate: SliverChildBuilderDelegate((context, index) {
-              //     return ProductCard(product: dummyProducts[index]);
-              //   }, childCount: dummyProducts.length),
-              // ),
+            ),
+            BlocBuilder<HomeCubit, HomeStates>(
+              builder: (context, state) {
+                if (state is ProductsLoadingMore) {
+                  return SliverToBoxAdapter(
+                    child: Padding(
+                      padding: EdgeInsets.all(25),
+                      child: Center(child: CircularProgressIndicator()),
+                    ),
+                  );
+                }
+                return SliverToBoxAdapter(child: SizedBox(height: 24));
+              },
             ),
             const SliverToBoxAdapter(child: SizedBox(height: 24)),
           ],
